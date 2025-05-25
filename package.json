@@ -1,0 +1,31 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "emu:up": "docker compose -f cicd/dev/docker-compose.yml up -d",
+    "emu:init": "tsx cicd/dev/bq-init.ts",
+    "dev": "pnpm nuxi dev",
+    "dev.test": "pnpm nuxi dev --host 0.0.0.0 --port 3000",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.7.0",
+    "@google-cloud/common": "^6.0.0",
+    "@primeuix/themes": "^1.1.1",
+    "@primevue/forms": "^4.3.4",
+    "nuxt": "^3.17.4",
+    "primevue": "^4.3.4",
+    "vue": "^3.5.14",
+    "vue-router": "^4.5.1"
+  },
+  "packageManager": "pnpm@9.12.3+sha1.4fb96925d434c491285182acf29803bb9aa2e6e5",
+  "devDependencies": {
+    "@primevue/nuxt-module": "^4.3.4",
+    "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
+    "tsx": "^4.10.0"
+  }
+}
