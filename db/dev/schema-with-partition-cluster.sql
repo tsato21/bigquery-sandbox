@@ -14,4 +14,6 @@ CREATE TABLE IF NOT EXISTS app_dataset.contractor_list (
       status      STRING
     >
   >
-);
+)
+PARTITION BY target_date
+CLUSTER BY page_uuid, p_id;

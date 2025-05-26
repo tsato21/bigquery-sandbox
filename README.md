@@ -9,53 +9,56 @@
 
 ## 2. セットアップ => 動作確認
 
-1. ライブラリインストール
-   ```bash
-   @google-cloud/bigquery
-   ```
-
-2. **Docker Emulator 起動**  
+1. **Docker Emulator 起動**  
    ```bash
    pnpm emu:up
    ```
 ＊Docker imageは `ghcr.io/goccy/bigquery-emulator:latest`を使用 (Google公式ではないが、Bigquery Emulatorでよく使用されている)
 - データ参照: 
 
-3. **初期化スクリプト実行**  
+2. **初期化スクリプト実行**  
    ```bash
    pnpm emu:init
    ```
    - app_dataset を autoCreate
-   - db/dev/schema.sql でテーブル作成
-   - db/dev/data.sql でサンプル投入
+   - スキーマとサンプルデータ挿入 (db/dev/*)
 
-4. **Nuxt 開発サーバー起動**  
+※データ確認したい場合)
+   ```bash
+   pnpm emu:query "SELECT * FROM app_dataset.contractor_list"
+   ```
+
+3. **Nuxt 開発サーバー起動**  
    ```bash
    pnpm run dev
    ```
 
-5. **動作確認**  
-   - http://localhost:3000で契約者情報の確認
+4. **ブラウザで動作確認**  
+   - 契約者情報が表示されることを確認
 
 ## 3. 課題と対策
-
-| 課題| 対策|
---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **パーティション／クラスタリング未対応**<br>`CREATE TABLE … PARTITION BY…` がエラー                 | ローカルではパーティションありでのテーブル作成は現状難しそう (partition 対応のfork版を試したが不安定だった) |
-| データセット自動生成ができない                                | スクリプトで `dataset('app_dataset').get({autoCreate:true})` を実行                                    |
-|
+- 課題1
+   - 課題
+      - Bigquery Emulatorはパーティション／クラスタリング未対応のためエラーが発生
+   - 対策
+      - ローカル開発ではパーティションありでのテーブル作成は実施しない。
+- 課題2
+   - 課題
+      - データセット自動生成ができない
+   - 対策
+      - `dataset('app_dataset').get({autoCreate:true})` を実行し、データセット生成
 
 ## 4. 設定詳細
-- ローカルとSTG/PRODでの処理の分け方:
-  - `const useEmulator = isDev && !!BQ_EMULATOR_HOST`でlocalのみuseEmulatorを使用
-- サービスアカウント: エミュレータは認証不要。スクリプト内で `makeAuthenticatedRequestFactory({})` でバイパス。
+- ローカルとSTG/PRODでの処理分岐:
+   - `const isDev = process.env.NODE_ENV === 'development'`でlocalのみEmulatorを使用
+   - サービスアカウント: Emulatorは認証不要。スクリプト内で `makeAuthenticatedRequestFactory({})` でバイパス。
 
 -----------
 
-# ② GTM・GA4 のローカルテスト
+# ② GTM(Google Tag Manager)・GA4 (Google Analytics 4) のローカルテスト
 
 ## 1. 目的
-- ローカル（http://localhost:3000）で起動したアプリ上でGTM や GA4 の動作確認
+- ローカル開発環境でアプリケーションを起動し、ボタンクリックなどの特定のアクションが GTM や GA4 で正しく計測されることを確認
 
 ## 2. セットアップ → 動作確認
 
@@ -63,22 +66,22 @@
 
 - Account > Property作成
 - Admin ▸ Data Streams ▸ Web → 対象ストリームを開く
-- Website URL: STG・PRODにリリース済みの場合はindexページのURL。未リリース時は`http://local.test`などdev用のURLを登録
-- Measurement ID: `G-YYYYYYYY` をメモ
+- Website URL: STG・PRODにリリース済みの場合はトップページのURL。未リリース時は`http://local.test`などdev用のURLを使用
+- Measurement ID: `G-YYYYYYYY` をメモ (GTMの設定で使用する)
 
 ### 2-2. GTM 管理画面設定
 
 1. コンテナ作成／選択
    - GTM ID（例: GTM-XXXXXXX）を確認
 
-2. 変数設定  
-![alt text](doc/images/variables.png)
+2. 変数設定
+![alt text](doc/images/variable.png)
 
 3. トリガー設定
 ![alt text](doc/images/trigger.png)
 
 3. タグ設定
-![alt text](doc/images/tag.png)
+![alt text](doc/images/tags.png)
 - Measurement ID: GA4の設定で取得したID (ADMIN > Datastream > Web stream detailsから確認可能)
 
 4. 公開
@@ -92,28 +95,54 @@
    ```
 
 2. **GTM Preview → Connect**
-   - Tag Assistant で URL に `http://localhost:3000` を入力
+   - URL に `http://localhost:3000` を入力
 
-3. **ブラウザで操作**
-   - タブ切替やボタンクリック → Tag Assistant の “Tags Fired” に `sublease_selection` が表示
+3. **ブラウザで対象アクションを実施**
+   - タブ切替やボタンクリック → Tag Assistant の “Tags Fired” に反映
 
-4. **GA4 DebugView & Realtime**
+4. **GTM の “Tags Fired” を確認**
+   - 対象アクションが実行されたことを確認
+
+5. **GA4で対象イベントのログデータ を確認**
    - ADMIN > Data Display > DebugView: Debug イベントを確認
-   - Report > Realtime Overview
+   - Report > Realtime Overview: リアルタイムでのイベントを確認
 
-## 3. 課題
+## 3. 課題と対策
+- 課題1
+   - 課題
+      - PrimevueのButtonコンポーネントは、標準のHTMLボタンと異なり、内部にspanタグが含まれる実装になっている。
+      - 当初、ButtonとGTMのTrigger以下のように設定していた。
 
-- BigQuery 自動エクスポート は未検証
-- STG/PROD 環境 での動作確認はまだ
-- PrimeVue Button の属性透過  
-  label prop 使用時は内層 `<span>` がクリック対象となり、  
-  トリガー設定で `[data-gtm="…"]` だけだと Tag が発火しない。  
-  → `[data-gtm="sublease_selection"], [data-gtm="sublease_selection"] *` のようにワイルドカードを使うことで、内包要素のクリックも拾える。
+      ```bash
+      <Button
+            label="XXX"
+            :data-gtm="'property_confirmation'"
+            :data-p-id="'1'"
+            :data-dest-id="'1'"
+            :data-action-type="ACTION_TYPE.CONFIRM_BUTTON"
+      />
+      ```
 
-## 4. 設定詳細
-
-- `@zadigetvoltaire/nuxt-gtm`を使用
-- `nuxt.config.ts`でgtmのconfig設定
+      ```bash
+      GTM > Trigger
+      [data-gtm="sublease_selection"]
+      ```
+      - 上記だと、内部の<span>タグから変数値が取得できずに失敗。
+      - Button全体に属性を付加するだけでは内部の各要素までは管理できないというPrimevue Buttonの特性によるものだと判明。
+   - 対策
+      - Buttonコンポーネント内にspanタグを配置し、そのspanタグに属性を設定する。
+      ```bash
+      <Button>
+         <span
+         :data-gtm="'property_confirmation'"
+         :data-p-id="'1'"
+         :data-dest-id="'1'"
+         :data-action-type="ACTION_TYPE.CONFIRM_BUTTON"
+         >
+         XXX
+         </span>
+      </Button>
+      ```
 
 -----------------------------------
 ▼参考文献

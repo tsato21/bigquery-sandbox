@@ -3,6 +3,7 @@
     "page_uuid": "page-a1b2c3",
     "p_id": 101,
     "p_name": "駐車場A",
+    "dest_id": 1001,
     "contractors": [
       {
         "contract_id": "C001",
@@ -26,6 +27,7 @@
     "page_uuid": "page-d4e5f6",
     "p_id": 102,
     "p_name": "駐車場B",
+    "dest_id": 1002,
     "contractors": [
       {
         "contract_id": "C003",
@@ -41,6 +43,7 @@
     "page_uuid": "page-g7h8i9",
     "p_id": 103,
     "p_name": "駐車場C",
+    "dest_id": 1003,
     "contractors": [
       {
         "contract_id": "C004",

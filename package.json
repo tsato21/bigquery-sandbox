@@ -6,8 +6,9 @@
     "build": "nuxt build",
     "emu:up": "docker compose -f cicd/dev/docker-compose.yml up -d",
     "emu:init": "tsx cicd/dev/bq-init.ts",
+    "emu:create-table": "tsx cicd/dev/bg-create-table.ts",
+    "emu:query": "tsx scripts/query-emulator.ts",
     "dev": "pnpm nuxi dev",
-    "dev.test": "pnpm nuxi dev --host 0.0.0.0 --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
